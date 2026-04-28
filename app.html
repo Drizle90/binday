@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Bin Day" />
   <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <title>Bin Day — Web App</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%91%EF%B8%8F%3C/text%3E%3C/svg%3E" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230066FF'/%3E%3Ctext x='50' y='75' text-anchor='middle' font-size='60'%3E%F0%9F%97%91%EF%B8%8F%3C/text%3E%3C/svg%3E" />
@@ -17,53 +18,49 @@
   <style>
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #F8F9FA; }
     .tab-active { color: #0066FF; }
+    .tab-active::after { content: ''; display: block; width: 24px; height: 3px; background: #0066FF; border-radius: 999px; margin: 4px auto 0; }
     .screen { display: none; }
     .screen.active { display: block; }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    @keyframes pulse-soft { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
-    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1A1A2E; color: white; padding: 12px 20px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .pulse-tonight { animation: pulse-soft 1.6s ease-in-out infinite; }
+    .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1A1A2E; color: white; padding: 12px 20px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; max-width: 90%; text-align: center; }
     .toast.show { opacity: 1; }
+    .field-error { box-shadow: 0 0 0 2px #EF4444 !important; }
+    .cal-bar { width: 100%; height: 3px; border-radius: 999px; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
   </style>
 </head>
 <body class="text-gray-900">
 
   <div class="min-h-screen max-w-md mx-auto bg-white shadow-2xl flex flex-col" id="appShell">
 
-    <!-- ================================================== -->
-    <!-- INSTALL BANNER (PWA prompt) -->
-    <!-- ================================================== -->
     <div id="installBanner" class="hidden bg-blue-600 text-white text-sm px-4 py-2 flex items-center gap-2">
-      <span class="text-lg">📲</span>
+      <span class="text-lg" aria-hidden="true">📲</span>
       <span class="flex-1">Install Bin Day to your home screen for one-tap access.</span>
       <button id="installShowBtn" class="bg-white text-blue-600 px-3 py-1 rounded-full font-bold text-xs">How</button>
-      <button id="installDismissBtn" class="text-white/70 px-2">✕</button>
+      <button id="installDismissBtn" class="text-white/70 px-2" aria-label="Dismiss install banner">✕</button>
     </div>
 
-    <!-- ================================================== -->
-    <!-- SETUP / ONBOARDING -->
-    <!-- ================================================== -->
+    <!-- SETUP -->
     <div id="setupScreen" class="screen flex-1 flex flex-col p-6">
       <div class="text-center pt-12 pb-8">
-        <div class="text-6xl mb-4">🗑️</div>
+        <div class="text-6xl mb-4" aria-hidden="true">🗑️</div>
         <h1 class="text-3xl font-extrabold mb-2">Welcome to Bin Day</h1>
         <p class="text-gray-600">Let's set up your bin schedule in 30 seconds.</p>
       </div>
-
       <div class="flex-1 space-y-6">
-        <!-- Step 1: Postcode lookup -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">1. Your postcode <span class="text-gray-400 font-normal">(optional, auto-detects state)</span></label>
+          <label for="setupPostcode" class="block text-sm font-semibold text-gray-700 mb-2">1. Your postcode <span class="text-gray-400 font-normal">(optional, auto-detects state)</span></label>
           <div class="flex gap-2">
             <input id="setupPostcode" type="tel" inputmode="numeric" maxlength="4" placeholder="e.g. 2000" class="flex-1 p-4 bg-gray-100 rounded-xl text-base font-medium border-0 focus:ring-2 focus:ring-blue-500" />
             <button id="lookupBtn" class="px-4 bg-blue-600 text-white rounded-xl font-bold text-sm">Look up</button>
           </div>
-          <p id="postcodeResult" class="text-xs text-gray-500 mt-1">Type a 4-digit Australian postcode and we'll find your state automatically.</p>
+          <p id="postcodeResult" class="text-xs text-gray-500 mt-1" aria-live="polite">Type a 4-digit Australian postcode and we'll find your state automatically.</p>
         </div>
-
-        <!-- Step 2: Region (auto-filled by postcode lookup) -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">2. State / Territory</label>
+          <label for="setupRegion" class="block text-sm font-semibold text-gray-700 mb-2">2. State / Territory <span class="text-red-500">*</span></label>
           <select id="setupRegion" class="w-full p-4 bg-gray-100 rounded-xl text-base font-medium border-0 focus:ring-2 focus:ring-blue-500">
             <option value="">— Select your state —</option>
             <option value="NSW">New South Wales (NSW)</option>
@@ -76,63 +73,30 @@
             <option value="NT">Northern Territory (NT)</option>
           </select>
         </div>
-
-        <!-- Step 3: Collection day -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">3. What day is bin night?</label>
+          <label for="setupDay" class="block text-sm font-semibold text-gray-700 mb-2">3. What day is bin night? <span class="text-red-500">*</span></label>
           <select id="setupDay" class="w-full p-4 bg-gray-100 rounded-xl text-base font-medium border-0 focus:ring-2 focus:ring-blue-500">
             <option value="">— Select day —</option>
-            <option value="0">Sunday</option>
-            <option value="1">Monday</option>
-            <option value="2">Tuesday</option>
-            <option value="3">Wednesday</option>
-            <option value="4">Thursday</option>
-            <option value="5">Friday</option>
-            <option value="6">Saturday</option>
+            <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
           </select>
-          <p class="text-xs text-gray-500 mt-1">Day bins are collected — we'll remind you the night before.</p>
         </div>
-
-        <!-- Step 4: Bin rotation -->
-        <div>
+        <div id="setupBinsContainer">
           <label class="block text-sm font-semibold text-gray-700 mb-3">4. Which bins go out?</label>
-          <div class="space-y-3">
-            <label class="flex items-center gap-3 p-4 bg-red-50 border-2 border-red-200 rounded-xl cursor-pointer">
-              <input type="checkbox" id="binGeneralWeekly" class="w-5 h-5" checked />
-              <div class="flex-1">
-                <p class="font-bold">General Waste</p>
-                <p class="text-xs text-gray-600">Every week</p>
-              </div>
-              <div class="w-8 h-8 bg-red-500 rounded-lg"></div>
-            </label>
-            <label class="flex items-center gap-3 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl cursor-pointer">
-              <input type="checkbox" id="binRecycling" class="w-5 h-5" checked />
-              <div class="flex-1">
-                <p class="font-bold">Recycling</p>
-                <p class="text-xs text-gray-600">Every fortnight (week A)</p>
-              </div>
-              <div class="w-8 h-8 bg-yellow-400 rounded-lg"></div>
-            </label>
-            <label class="flex items-center gap-3 p-4 bg-green-50 border-2 border-green-200 rounded-xl cursor-pointer">
-              <input type="checkbox" id="binGarden" class="w-5 h-5" />
-              <div class="flex-1">
-                <p class="font-bold">Garden Waste</p>
-                <p class="text-xs text-gray-600">Every fortnight (week B)</p>
-              </div>
-              <div class="w-8 h-8 bg-green-600 rounded-lg"></div>
-            </label>
+          <div class="space-y-3" id="setupBinsList"></div>
+        </div>
+        <div id="recyclingWeekStep" class="hidden">
+          <label class="block text-sm font-semibold text-gray-700 mb-3">5. Did your recycling go out THIS week?</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-week="this" class="recycling-week-btn p-4 bg-gray-100 rounded-xl font-bold text-sm border-2 border-transparent">✓ Yes, this week</button>
+            <button type="button" data-week="next" class="recycling-week-btn p-4 bg-gray-100 rounded-xl font-bold text-sm border-2 border-transparent">No, next week</button>
           </div>
+          <p class="text-xs text-gray-500 mt-2">Recycling and Garden alternate weekly. Pick whichever week is "this week" for you.</p>
         </div>
       </div>
-
-      <button id="setupSaveBtn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition mt-6">
-        Save & Start Tracking
-      </button>
+      <button id="setupSaveBtn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition mt-6" disabled>Save & Start Tracking</button>
     </div>
 
-    <!-- ================================================== -->
-    <!-- HOME SCREEN -->
-    <!-- ================================================== -->
+    <!-- HOME -->
     <div id="homeScreen" class="screen flex-1 flex flex-col">
       <header class="px-6 pt-12 pb-4 flex justify-between items-center">
         <div>
@@ -140,485 +104,447 @@
           <h1 class="text-2xl font-extrabold" id="homeRegionLabel">—</h1>
           <p id="homeSuburbLabel" class="text-xs text-gray-400"></p>
         </div>
-        <button onclick="showScreen('settingsScreen')" class="text-2xl">⚙️</button>
+        <button onclick="showScreen('settingsScreen')" class="text-2xl" aria-label="Open settings">⚙️</button>
       </header>
-
       <div class="px-6 pb-6 flex-1 overflow-y-auto">
-        <!-- Countdown card -->
-        <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-3xl p-6 shadow-xl mb-6 animate-slide-up">
-          <p class="text-blue-200 text-sm uppercase tracking-wide mb-1">Next collection</p>
+        <div id="homeCountdownCard" class="rounded-3xl p-6 shadow-xl mb-6 animate-slide-up text-white">
+          <p class="text-sm uppercase tracking-wide mb-1 opacity-80">Next collection</p>
           <p class="text-4xl font-extrabold mb-1" id="homeCountdown">—</p>
-          <p class="text-blue-100" id="homeNextDate">—</p>
+          <p id="homeNextDate" class="opacity-90">—</p>
         </div>
-
-        <!-- Bins this week -->
-        <h2 class="text-lg font-bold mb-3">Bins out this week</h2>
-        <div class="space-y-3 mb-8" id="homeBinsList"></div>
-
-        <!-- Upcoming -->
-        <h2 class="text-lg font-bold mb-3">Upcoming collections</h2>
-        <div class="space-y-2" id="homeUpcomingList"></div>
+        <div id="homeEmptyState" class="hidden bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 text-center mb-6">
+          <p class="text-4xl mb-2" aria-hidden="true">🗑️</p>
+          <p class="font-bold mb-1">No bins selected</p>
+          <p class="text-sm text-gray-600 mb-4">Pick which bins go out at your house to start tracking.</p>
+          <button onclick="showScreen('settingsScreen')" class="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-sm">Choose your bins</button>
+        </div>
+        <div id="homeContent">
+          <h2 class="text-lg font-bold mb-3">Bins out this week</h2>
+          <div class="space-y-3 mb-6" id="homeBinsList"></div>
+          <button id="exportIcsBtn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium text-sm mb-6">📅 Add next 12 months to your calendar</button>
+          <h2 class="text-lg font-bold mb-3">Upcoming collections</h2>
+          <div class="space-y-2" id="homeUpcomingList"></div>
+        </div>
       </div>
-
-      <nav class="border-t border-gray-200 bg-white py-2 grid grid-cols-3 sticky bottom-0">
-        <button onclick="showScreen('homeScreen')" class="flex flex-col items-center text-xs tab-active py-1">
-          <span class="text-xl">🏠</span><span class="font-medium">Home</span>
-        </button>
-        <button onclick="showScreen('calendarScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1">
-          <span class="text-xl">📅</span><span class="font-medium">Calendar</span>
-        </button>
-        <button onclick="showScreen('guideScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1">
-          <span class="text-xl">📖</span><span class="font-medium">Guide</span>
-        </button>
+      <nav class="border-t border-gray-200 bg-white py-2 grid grid-cols-3 sticky bottom-0" aria-label="Main navigation">
+        <button onclick="showScreen('homeScreen')" class="flex flex-col items-center text-xs tab-active py-1" aria-current="page"><span class="text-xl" aria-hidden="true">🏠</span><span>Home</span></button>
+        <button onclick="showScreen('calendarScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1"><span class="text-xl" aria-hidden="true">📅</span><span>Calendar</span></button>
+        <button onclick="showScreen('guideScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1"><span class="text-xl" aria-hidden="true">📖</span><span>Guide</span></button>
       </nav>
     </div>
 
-    <!-- ================================================== -->
-    <!-- CALENDAR SCREEN -->
-    <!-- ================================================== -->
+    <!-- CALENDAR -->
     <div id="calendarScreen" class="screen flex-1 flex flex-col">
       <header class="px-6 pt-12 pb-4">
         <h1 class="text-2xl font-extrabold">Calendar</h1>
         <p class="text-gray-500 text-sm" id="calendarMonthLabel">—</p>
       </header>
-
       <div class="px-6 pb-6 flex-1 overflow-y-auto">
         <div class="flex justify-between items-center mb-3">
-          <button id="calPrev" class="px-3 py-2 bg-gray-100 rounded-lg font-medium">‹ Prev</button>
-          <button id="calNext" class="px-3 py-2 bg-gray-100 rounded-lg font-medium">Next ›</button>
+          <button id="calPrev" class="px-3 py-2 bg-gray-100 rounded-lg font-medium" aria-label="Previous month">‹ Prev</button>
+          <button id="calNext" class="px-3 py-2 bg-gray-100 rounded-lg font-medium" aria-label="Next month">Next ›</button>
         </div>
-        <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-2">
-          <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
-        </div>
+        <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-2"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
         <div class="grid grid-cols-7 gap-1" id="calendarGrid"></div>
-        <p class="text-xs text-gray-500 mt-4 text-center">Coloured dots show which bins go out each day.</p>
+        <p class="text-xs text-gray-500 mt-4 text-center">Coloured bars show which bins go out each day.</p>
       </div>
-
-      <nav class="border-t border-gray-200 bg-white py-2 grid grid-cols-3 sticky bottom-0">
-        <button onclick="showScreen('homeScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1">
-          <span class="text-xl">🏠</span><span class="font-medium">Home</span>
-        </button>
-        <button onclick="showScreen('calendarScreen')" class="flex flex-col items-center text-xs tab-active py-1">
-          <span class="text-xl">📅</span><span class="font-medium">Calendar</span>
-        </button>
-        <button onclick="showScreen('guideScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1">
-          <span class="text-xl">📖</span><span class="font-medium">Guide</span>
-        </button>
+      <nav class="border-t border-gray-200 bg-white py-2 grid grid-cols-3 sticky bottom-0" aria-label="Main navigation">
+        <button onclick="showScreen('homeScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1"><span class="text-xl" aria-hidden="true">🏠</span><span>Home</span></button>
+        <button onclick="showScreen('calendarScreen')" class="flex flex-col items-center text-xs tab-active py-1" aria-current="page"><span class="text-xl" aria-hidden="true">📅</span><span>Calendar</span></button>
+        <button onclick="showScreen('guideScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1"><span class="text-xl" aria-hidden="true">📖</span><span>Guide</span></button>
       </nav>
     </div>
 
-    <!-- ================================================== -->
-    <!-- GUIDE SCREEN -->
-    <!-- ================================================== -->
+    <!-- GUIDE -->
     <div id="guideScreen" class="screen flex-1 flex flex-col">
       <header class="px-6 pt-12 pb-4">
         <h1 class="text-2xl font-extrabold">Recycling Guide</h1>
         <p class="text-gray-500 text-sm">What goes in each bin</p>
       </header>
-
-      <div class="px-6 pb-6 flex-1 overflow-y-auto space-y-4">
-        <details class="bg-red-50 border-2 border-red-200 rounded-2xl p-4" open>
-          <summary class="font-bold text-lg cursor-pointer flex items-center gap-3">
-            <div class="w-8 h-8 bg-red-500 rounded-lg"></div> General Waste
-          </summary>
-          <div class="mt-3 text-sm text-gray-700 space-y-2">
-            <p><strong class="text-green-700">YES:</strong> Food scraps, nappies, broken glass, dirty packaging, polystyrene, soft plastics (in some councils).</p>
-            <p><strong class="text-red-700">NO:</strong> Recyclables, garden waste, batteries, electronics, hazardous waste.</p>
-          </div>
-        </details>
-
-        <details class="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4">
-          <summary class="font-bold text-lg cursor-pointer flex items-center gap-3">
-            <div class="w-8 h-8 bg-yellow-400 rounded-lg"></div> Recycling
-          </summary>
-          <div class="mt-3 text-sm text-gray-700 space-y-2">
-            <p><strong class="text-green-700">YES:</strong> Clean paper, cardboard, glass bottles, aluminium cans, hard plastics (1, 2 & 5), milk cartons.</p>
-            <p><strong class="text-red-700">NO:</strong> Soft plastics, food waste, polystyrene, nappies, plastic bags, broken glass.</p>
-            <p class="text-xs italic">Tip: Rinse containers and don't bag your recycling.</p>
-          </div>
-        </details>
-
-        <details class="bg-green-50 border-2 border-green-200 rounded-2xl p-4">
-          <summary class="font-bold text-lg cursor-pointer flex items-center gap-3">
-            <div class="w-8 h-8 bg-green-600 rounded-lg"></div> Garden / Organics
-          </summary>
-          <div class="mt-3 text-sm text-gray-700 space-y-2">
-            <p><strong class="text-green-700">YES:</strong> Lawn clippings, leaves, small branches, weeds, prunings.</p>
-            <p><strong class="text-green-700">FOGO councils also:</strong> Food scraps, fruit/veg peels, coffee grounds, eggshells.</p>
-            <p><strong class="text-red-700">NO:</strong> Plastic bags, soil, rocks, treated timber, large branches.</p>
-          </div>
-        </details>
-
-        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-sm text-blue-900">
-          💡 <strong>When in doubt, leave it out</strong> — putting wrong items in recycling can contaminate the whole truckload.
-        </div>
-      </div>
-
-      <nav class="border-t border-gray-200 bg-white py-2 grid grid-cols-3 sticky bottom-0">
-        <button onclick="showScreen('homeScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1">
-          <span class="text-xl">🏠</span><span class="font-medium">Home</span>
-        </button>
-        <button onclick="showScreen('calendarScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1">
-          <span class="text-xl">📅</span><span class="font-medium">Calendar</span>
-        </button>
-        <button onclick="showScreen('guideScreen')" class="flex flex-col items-center text-xs tab-active py-1">
-          <span class="text-xl">📖</span><span class="font-medium">Guide</span>
-        </button>
+      <div class="px-6 pb-6 flex-1 overflow-y-auto space-y-4" id="guideContent"></div>
+      <nav class="border-t border-gray-200 bg-white py-2 grid grid-cols-3 sticky bottom-0" aria-label="Main navigation">
+        <button onclick="showScreen('homeScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1"><span class="text-xl" aria-hidden="true">🏠</span><span>Home</span></button>
+        <button onclick="showScreen('calendarScreen')" class="flex flex-col items-center text-xs text-gray-500 py-1"><span class="text-xl" aria-hidden="true">📅</span><span>Calendar</span></button>
+        <button onclick="showScreen('guideScreen')" class="flex flex-col items-center text-xs tab-active py-1" aria-current="page"><span class="text-xl" aria-hidden="true">📖</span><span>Guide</span></button>
       </nav>
     </div>
 
-    <!-- ================================================== -->
-    <!-- SETTINGS SCREEN -->
-    <!-- ================================================== -->
+    <!-- SETTINGS -->
     <div id="settingsScreen" class="screen flex-1 flex flex-col">
       <header class="px-6 pt-12 pb-4 flex items-center gap-3">
-        <button onclick="showScreen('homeScreen')" class="text-2xl">‹</button>
+        <button onclick="showScreen('homeScreen')" class="text-2xl" aria-label="Back to home">‹</button>
         <h1 class="text-2xl font-extrabold">Settings</h1>
       </header>
       <div class="px-6 pb-6 flex-1 overflow-y-auto space-y-6">
         <div>
-          <label class="block text-sm font-semibold mb-2">Postcode</label>
+          <label for="settingsPostcode" class="block text-sm font-semibold mb-2">Postcode</label>
           <div class="flex gap-2">
             <input id="settingsPostcode" type="tel" inputmode="numeric" maxlength="4" class="flex-1 p-3 bg-gray-100 rounded-xl" />
             <button id="settingsLookupBtn" class="px-4 bg-blue-600 text-white rounded-xl font-bold text-sm">Look up</button>
           </div>
-          <p id="settingsPostcodeResult" class="text-xs text-gray-500 mt-1"></p>
+          <p id="settingsPostcodeResult" class="text-xs text-gray-500 mt-1" aria-live="polite"></p>
         </div>
         <div>
-          <label class="block text-sm font-semibold mb-2">Region</label>
+          <label for="settingsRegion" class="block text-sm font-semibold mb-2">Region</label>
           <select id="settingsRegion" class="w-full p-3 bg-gray-100 rounded-xl"></select>
         </div>
         <div>
-          <label class="block text-sm font-semibold mb-2">Collection day</label>
+          <label for="settingsDay" class="block text-sm font-semibold mb-2">Collection day</label>
           <select id="settingsDay" class="w-full p-3 bg-gray-100 rounded-xl"></select>
         </div>
         <div>
           <label class="block text-sm font-semibold mb-3">Bins</label>
-          <div class="space-y-2">
-            <label class="flex items-center gap-3 p-3 bg-gray-100 rounded-xl">
-              <input type="checkbox" id="settingsGeneral" class="w-5 h-5" />
-              <span class="flex-1">General Waste (weekly)</span>
-              <div class="w-6 h-6 bg-red-500 rounded"></div>
-            </label>
-            <label class="flex items-center gap-3 p-3 bg-gray-100 rounded-xl">
-              <input type="checkbox" id="settingsRecycling" class="w-5 h-5" />
-              <span class="flex-1">Recycling (fortnightly)</span>
-              <div class="w-6 h-6 bg-yellow-400 rounded"></div>
-            </label>
-            <label class="flex items-center gap-3 p-3 bg-gray-100 rounded-xl">
-              <input type="checkbox" id="settingsGarden" class="w-5 h-5" />
-              <span class="flex-1">Garden Waste (fortnightly)</span>
-              <div class="w-6 h-6 bg-green-600 rounded"></div>
-            </label>
+          <div class="space-y-2" id="settingsBinsList"></div>
+        </div>
+        <div id="settingsRecyclingWeekStep" class="hidden">
+          <label class="block text-sm font-semibold mb-2">Recycling / Garden alternation</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" data-week="this" class="settings-week-btn p-3 bg-gray-100 rounded-xl font-bold text-sm border-2 border-transparent">Recycling this week</button>
+            <button type="button" data-week="next" class="settings-week-btn p-3 bg-gray-100 rounded-xl font-bold text-sm border-2 border-transparent">Recycling next week</button>
           </div>
         </div>
         <div>
           <label class="block text-sm font-semibold mb-2">Browser reminders</label>
-          <button id="enableNotifBtn" class="w-full bg-gray-100 hover:bg-gray-200 p-3 rounded-xl font-medium">
-            🔔 Enable bin night reminders
-          </button>
-          <p class="text-xs text-gray-500 mt-1">We'll show a browser notification the evening before bin day.</p>
+          <button id="enableNotifBtn" class="w-full bg-gray-100 hover:bg-gray-200 p-3 rounded-xl font-medium">🔔 Test notification</button>
+          <p class="text-xs text-gray-500 mt-1">Sends a one-off test notification right now. Real scheduled reminders need the Push API and aren't built yet — for now we recommend setting a recurring reminder in your phone's clock app.</p>
         </div>
         <div>
           <label class="block text-sm font-semibold mb-2">Add to home screen</label>
-          <button id="installInstructionsBtn" class="w-full bg-blue-50 text-blue-700 p-3 rounded-xl font-medium">
-            📲 Show install instructions
-          </button>
+          <button id="installInstructionsBtn" class="w-full bg-blue-50 text-blue-700 p-3 rounded-xl font-medium">📲 Show install instructions</button>
         </div>
-        <button id="settingsSaveBtn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">
-          Save Changes
-        </button>
-        <button id="resetBtn" class="w-full bg-red-50 text-red-600 py-3 rounded-2xl font-medium">
-          Reset & Start Over
-        </button>
-        <p class="text-xs text-gray-400 text-center pb-4">Bin Day Tracker · v1.1 · Made in Australia</p>
+        <button id="settingsSaveBtn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">Save Changes</button>
+        <details class="text-xs text-gray-500">
+          <summary class="cursor-pointer text-center text-gray-400">Danger zone</summary>
+          <button id="resetBtn" class="w-full bg-red-50 text-red-600 py-3 rounded-2xl font-medium mt-3">Reset & Start Over</button>
+        </details>
+        <p class="text-xs text-gray-400 text-center pb-4">Bin Day Tracker · v1.2 · Made in Australia</p>
       </div>
     </div>
-
   </div>
 
-  <!-- Install instructions modal -->
-  <div id="installModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+  <div id="installModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="installModalTitle">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 max-h-[80vh] overflow-y-auto">
       <div class="flex justify-between items-start mb-4">
-        <h3 class="text-xl font-extrabold">📲 Install Bin Day</h3>
-        <button id="closeInstallBtn" class="text-2xl text-gray-400">✕</button>
+        <h3 id="installModalTitle" class="text-xl font-extrabold">📲 Install Bin Day</h3>
+        <button id="closeInstallBtn" class="text-2xl text-gray-400" aria-label="Close install instructions">✕</button>
       </div>
       <div id="installInstructions" class="text-sm space-y-4 text-gray-700"></div>
     </div>
   </div>
-
-  <!-- Toast -->
-  <div id="toast" class="toast"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // ===== Data =====
     const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const REGION_LABELS = {
-      NSW:'New South Wales', VIC:'Victoria', QLD:'Queensland', WA:'Western Australia',
-      SA:'South Australia', TAS:'Tasmania', ACT:'ACT', NT:'Northern Territory'
-    };
+    const REGION_LABELS = { NSW:'New South Wales', VIC:'Victoria', QLD:'Queensland', WA:'Western Australia', SA:'South Australia', TAS:'Tasmania', ACT:'ACT', NT:'Northern Territory' };
     const REGION_BINS = {
-      NSW: { general:'#E63946', recycling:'#FFD60A', garden:'#06A77D' },
-      VIC: { general:'#1A1A2E', recycling:'#FFD60A', garden:'#06A77D' },
-      QLD: { general:'#8B4513', recycling:'#0066FF', garden:'#06A77D' },
-      WA:  { general:'#E63946', recycling:'#FFD60A', garden:'#06A77D' },
-      SA:  { general:'#E63946', recycling:'#FFD60A', garden:'#06A77D' },
-      TAS: { general:'#1A1A2E', recycling:'#FFD60A', garden:'#06A77D' },
-      ACT: { general:'#E63946', recycling:'#FFD60A', garden:'#06A77D' },
-      NT:  { general:'#1A1A2E', recycling:'#FFD60A', garden:'#06A77D' },
+      NSW:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'}, VIC:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
+      QLD:{general:'#8B4513',recycling:'#0066FF',garden:'#06A77D'}, WA:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'},
+      SA:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'},  TAS:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
+      ACT:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'}, NT:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
     };
-    // Australian postcode → state ranges (official Auspost ranges)
     function postcodeToState(pc) {
-      const n = parseInt(pc, 10);
-      if (isNaN(n) || pc.length !== 4) return null;
-      // NSW: 1000-1999, 2000-2599, 2619-2899, 2921-2999
+      const n = parseInt(pc, 10); if (isNaN(n) || pc.length !== 4) return null;
       if ((n>=1000&&n<=1999)||(n>=2000&&n<=2599)||(n>=2619&&n<=2899)||(n>=2921&&n<=2999)) return 'NSW';
-      // ACT: 200-299, 2600-2618, 2900-2920
       if ((n>=200&&n<=299)||(n>=2600&&n<=2618)||(n>=2900&&n<=2920)) return 'ACT';
-      // VIC: 3000-3999, 8000-8999
       if ((n>=3000&&n<=3999)||(n>=8000&&n<=8999)) return 'VIC';
-      // QLD: 4000-4999, 9000-9999
       if ((n>=4000&&n<=4999)||(n>=9000&&n<=9999)) return 'QLD';
-      // SA: 5000-5799, 5800-5999
-      if (n>=5000&&n<=5999) return 'SA';
-      // WA: 6000-6797, 6800-6999
-      if (n>=6000&&n<=6999) return 'WA';
-      // TAS: 7000-7799, 7800-7999
-      if (n>=7000&&n<=7999) return 'TAS';
-      // NT: 800-899, 900-999
-      if ((n>=800&&n<=899)||(n>=900&&n<=999)) return 'NT';
-      return null;
+      if (n>=5000&&n<=5999) return 'SA'; if (n>=6000&&n<=6999) return 'WA'; if (n>=7000&&n<=7999) return 'TAS';
+      if ((n>=800&&n<=899)||(n>=900&&n<=999)) return 'NT'; return null;
     }
-
-    const STORAGE_KEY = 'bindayConfig';
-    const INSTALL_DISMISSED_KEY = 'bindayInstallDismissed';
-    let config = null;
-    let calendarOffset = 0;
-
-    // ===== Persistence =====
-    function loadConfig() {
-      try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }
-      catch { return null; }
-    }
-    function saveConfig(cfg) { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); config = cfg; }
-
-    // ===== Toast =====
-    function toast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
-    }
-
-    // ===== Screen routing =====
+    const STORAGE_KEY = 'bindayConfig'; const INSTALL_DISMISSED_KEY = 'bindayInstallDismissed';
+    let config = null, calendarOffset = 0, setupRecyclingWeek = null, settingsRecyclingWeek = null;
+    function loadConfig() { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+    function saveConfig(c) { localStorage.setItem(STORAGE_KEY, JSON.stringify(c)); config = c; }
+    function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      window.scrollTo(0, 0);
+      document.getElementById(id).classList.add('active'); window.scrollTo(0,0);
       if (id === 'homeScreen') renderHome();
       if (id === 'calendarScreen') renderCalendar();
+      if (id === 'guideScreen') renderGuide();
       if (id === 'settingsScreen') renderSettings();
     }
     window.showScreen = showScreen;
-
-    // ===== Date helpers =====
-    function nextOccurrence(dayOfWeek, fromDate = new Date()) {
-      const d = new Date(fromDate); d.setHours(0,0,0,0);
-      const diff = (dayOfWeek - d.getDay() + 7) % 7;
-      d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
-      return d;
+    function nextOccurrence(dow, from = new Date()) {
+      const d = new Date(from); d.setHours(0,0,0,0);
+      const diff = (dow - d.getDay() + 7) % 7;
+      d.setDate(d.getDate() + (diff === 0 ? 7 : diff)); return d;
     }
-    function todayIsCollectionDay(dayOfWeek) { return new Date().getDay() === dayOfWeek; }
-    function isWeekA(date) {
-      const start = new Date(date.getFullYear(), 0, 1);
-      const days = Math.floor((date - start) / 86400000);
-      const week = Math.ceil((days + start.getDay() + 1) / 7);
-      return week % 2 === 1;
+    function todayIsCollectionDay(dow) { return new Date().getDay() === dow; }
+    function isRecyclingWeek(date) {
+      if (!config?.anchorDate) return true;
+      const a = new Date(config.anchorDate); a.setHours(0,0,0,0);
+      const t = new Date(date); t.setHours(0,0,0,0);
+      const w = Math.round((t - a) / (7 * 86400000));
+      return w % 2 === 0;
     }
     function binsForDate(date) {
       if (!config) return [];
-      const bins = [];
-      if (config.general) bins.push({ key:'general', label:'General Waste', color: REGION_BINS[config.region].general });
-      const weekA = isWeekA(date);
-      if (config.recycling && weekA) bins.push({ key:'recycling', label:'Recycling', color: REGION_BINS[config.region].recycling });
-      if (config.garden && !weekA) bins.push({ key:'garden', label:'Garden Waste', color: REGION_BINS[config.region].garden });
-      return bins;
+      const out = []; const c = REGION_BINS[config.region];
+      if (config.general) out.push({key:'general',label:'General Waste',color:c.general});
+      const rw = isRecyclingWeek(date);
+      if (config.recycling && rw) out.push({key:'recycling',label:'Recycling',color:c.recycling});
+      if (config.garden && !rw) out.push({key:'garden',label:'Garden Waste',color:c.garden});
+      return out;
     }
+    function doLookup(inId, resId, regId, onChange) {
+      const pc = document.getElementById(inId).value.trim();
+      const r = document.getElementById(resId);
+      if (pc.length !== 4) { r.textContent = 'Postcode must be 4 digits.'; r.className = 'text-xs text-red-500 mt-1'; return; }
+      const s = postcodeToState(pc);
+      if (s) {
+        document.getElementById(regId).value = s;
+        r.innerHTML = `✓ Found: <strong>${REGION_LABELS[s]}</strong>`;
+        r.className = 'text-xs text-green-600 mt-1';
+        toast(`Detected ${REGION_LABELS[s]}`);
+        if (onChange) onChange(s);
+      } else { r.textContent = 'Postcode not recognised. Pick your state manually.'; r.className = 'text-xs text-orange-600 mt-1'; }
+    }
+    document.getElementById('lookupBtn').addEventListener('click', () => doLookup('setupPostcode','postcodeResult','setupRegion', renderSetupBins));
+    document.getElementById('setupPostcode').addEventListener('input', e => { if (e.target.value.length === 4) doLookup('setupPostcode','postcodeResult','setupRegion', renderSetupBins); validateSetup(); });
+    document.getElementById('settingsLookupBtn').addEventListener('click', () => doLookup('settingsPostcode','settingsPostcodeResult','settingsRegion', renderSettingsBins));
 
-    // ===== Postcode lookup =====
-    function doLookup(inputId, resultId, regionId) {
-      const pc = document.getElementById(inputId).value.trim();
-      const result = document.getElementById(resultId);
-      if (pc.length !== 4) {
-        result.textContent = 'Postcode must be 4 digits.';
-        result.className = 'text-xs text-red-500 mt-1';
-        return;
-      }
-      const state = postcodeToState(pc);
-      if (state) {
-        document.getElementById(regionId).value = state;
-        result.innerHTML = `✓ Found: <strong>${REGION_LABELS[state]}</strong>`;
-        result.className = 'text-xs text-green-600 mt-1';
-        toast(`Detected ${REGION_LABELS[state]}`);
-      } else {
-        result.textContent = 'Postcode not recognised. Please pick your state manually.';
-        result.className = 'text-xs text-orange-600 mt-1';
-      }
+    function renderSetupBins() {
+      const region = document.getElementById('setupRegion').value;
+      const c = region ? REGION_BINS[region] : {general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'};
+      const list = document.getElementById('setupBinsList');
+      const prev = { general: document.getElementById('binGeneralWeekly')?.checked ?? true, recycling: document.getElementById('binRecycling')?.checked ?? true, garden: document.getElementById('binGarden')?.checked ?? false };
+      list.innerHTML = `
+        <label class="flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2" style="background:${c.general}10; border-color:${c.general}40">
+          <input type="checkbox" id="binGeneralWeekly" class="w-5 h-5" ${prev.general?'checked':''} />
+          <div class="flex-1"><p class="font-bold">General Waste</p><p class="text-xs text-gray-600">Every week</p></div>
+          <div class="w-8 h-8 rounded-lg shadow-sm" style="background:${c.general}" aria-hidden="true"></div>
+        </label>
+        <label class="flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2" style="background:${c.recycling}1a; border-color:${c.recycling}80">
+          <input type="checkbox" id="binRecycling" class="w-5 h-5" ${prev.recycling?'checked':''} />
+          <div class="flex-1"><p class="font-bold">Recycling</p><p class="text-xs text-gray-600">Every fortnight</p></div>
+          <div class="w-8 h-8 rounded-lg shadow-sm" style="background:${c.recycling}" aria-hidden="true"></div>
+        </label>
+        <label class="flex items-center gap-3 p-4 rounded-xl cursor-pointer border-2" style="background:${c.garden}10; border-color:${c.garden}40">
+          <input type="checkbox" id="binGarden" class="w-5 h-5" ${prev.garden?'checked':''} />
+          <div class="flex-1"><p class="font-bold">Garden Waste</p><p class="text-xs text-gray-600">Every fortnight (alternates with recycling)</p></div>
+          <div class="w-8 h-8 rounded-lg shadow-sm" style="background:${c.garden}" aria-hidden="true"></div>
+        </label>`;
+      list.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => { updateRecyclingWeekVisibility(); validateSetup(); }));
+      updateRecyclingWeekVisibility();
     }
-    document.getElementById('lookupBtn').addEventListener('click', () => doLookup('setupPostcode','postcodeResult','setupRegion'));
-    document.getElementById('setupPostcode').addEventListener('input', e => {
-      if (e.target.value.length === 4) doLookup('setupPostcode','postcodeResult','setupRegion');
+    function updateRecyclingWeekVisibility() {
+      const show = document.getElementById('binRecycling')?.checked || document.getElementById('binGarden')?.checked;
+      document.getElementById('recyclingWeekStep').classList.toggle('hidden', !show);
+    }
+    document.querySelectorAll('.recycling-week-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setupRecyclingWeek = btn.dataset.week;
+        document.querySelectorAll('.recycling-week-btn').forEach(b => b.classList.remove('border-blue-600','bg-blue-50'));
+        btn.classList.add('border-blue-600','bg-blue-50');
+        validateSetup();
+      });
     });
+    document.getElementById('setupRegion').addEventListener('change', () => { renderSetupBins(); validateSetup(); });
+    document.getElementById('setupDay').addEventListener('change', validateSetup);
+    function validateSetup() {
+      const r = document.getElementById('setupRegion').value;
+      const d = document.getElementById('setupDay').value;
+      const needsWeek = document.getElementById('binRecycling')?.checked || document.getElementById('binGarden')?.checked;
+      const ok = !!r && d !== '' && (!needsWeek || setupRecyclingWeek);
+      document.getElementById('setupSaveBtn').disabled = !ok;
+    }
 
-    // ===== Render: Home =====
     function renderHome() {
       if (!config) { showScreen('setupScreen'); return; }
       document.getElementById('homeRegionLabel').textContent = REGION_LABELS[config.region];
       document.getElementById('homeSuburbLabel').textContent = config.postcode ? `Postcode ${config.postcode}` : '';
-
       const today = new Date();
       const next = todayIsCollectionDay(config.day) ? today : nextOccurrence(config.day, today);
       const isToday = next.toDateString() === today.toDateString();
       const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
       const isTomorrow = next.toDateString() === tomorrow.toDateString();
-
-      const countdown = isToday ? 'TONIGHT' : isTomorrow ? 'Tomorrow' : `In ${Math.ceil((next - today)/86400000)} days`;
-      document.getElementById('homeCountdown').textContent = countdown;
-      document.getElementById('homeNextDate').textContent =
-        `${DAYS[next.getDay()]}, ${next.toLocaleDateString('en-AU', { day:'numeric', month:'long' })}`;
-
+      const daysAway = Math.ceil((next - today)/86400000);
       const bins = binsForDate(next);
-      const binsList = document.getElementById('homeBinsList');
-      binsList.innerHTML = bins.length ? bins.map(b => `
-        <div class="flex items-center gap-4 p-4 bg-white border-2 rounded-2xl shadow-sm" style="border-color:${b.color}33">
-          <div class="w-14 h-14 rounded-xl shadow-sm" style="background:${b.color}"></div>
-          <div class="flex-1">
-            <p class="font-bold">${b.label}</p>
-            <p class="text-sm text-gray-500">Put out tonight</p>
-          </div>
-          <span class="text-2xl">✓</span>
-        </div>
-      `).join('') : '<p class="text-gray-500 text-sm p-4 bg-gray-50 rounded-xl">No bins selected. Visit settings to add some.</p>';
-
-      const upcoming = [];
-      let cursor = new Date(next);
-      for (let i = 0; i < 5; i++) {
-        upcoming.push({ date: new Date(cursor), bins: binsForDate(cursor) });
-        cursor.setDate(cursor.getDate() + 7);
+      const card = document.getElementById('homeCountdownCard');
+      const empty = document.getElementById('homeEmptyState');
+      const homeContent = document.getElementById('homeContent');
+      if (bins.length === 0) {
+        card.classList.add('hidden'); empty.classList.remove('hidden'); homeContent.classList.add('hidden'); return;
+      } else {
+        card.classList.remove('hidden'); empty.classList.add('hidden'); homeContent.classList.remove('hidden');
       }
+      const countdown = isToday ? 'TONIGHT' : isTomorrow ? 'Tomorrow' : `In ${daysAway} days`;
+      document.getElementById('homeCountdown').textContent = countdown;
+      document.getElementById('homeNextDate').textContent = `${DAYS[next.getDay()]}, ${next.toLocaleDateString('en-AU',{day:'numeric',month:'long'})}`;
+      card.classList.remove('pulse-tonight');
+      if (isToday) { card.style.background = 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)'; card.classList.add('pulse-tonight'); }
+      else if (isTomorrow) { card.style.background = 'linear-gradient(135deg, #F59E0B 0%, #B45309 100%)'; }
+      else if (daysAway <= 3) { card.style.background = 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'; }
+      else { card.style.background = 'linear-gradient(135deg, #06A77D 0%, #047857 100%)'; }
+      document.getElementById('homeBinsList').innerHTML = bins.map(b => `
+        <div class="flex items-center gap-4 p-4 bg-white border-2 rounded-2xl shadow-sm" style="border-color:${b.color}55">
+          <div class="w-14 h-14 rounded-xl shadow-sm" style="background:${b.color}" aria-hidden="true"></div>
+          <div class="flex-1"><p class="font-bold">${b.label}</p>
+            <p class="text-sm text-gray-500">${isToday||isTomorrow?'Put out tonight':`Put out the night before ${DAYS[next.getDay()]}`}</p></div>
+          <span class="text-2xl" aria-hidden="true">✓</span>
+        </div>`).join('');
+      const upcoming = []; let cursor = new Date(next);
+      for (let i = 0; i < 6; i++) { upcoming.push({date:new Date(cursor), bins:binsForDate(cursor)}); cursor.setDate(cursor.getDate()+7); }
       document.getElementById('homeUpcomingList').innerHTML = upcoming.slice(1).map(u => `
         <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-          <div class="text-center w-12">
-            <p class="text-xs text-gray-500">${u.date.toLocaleDateString('en-AU', { month:'short' })}</p>
-            <p class="font-bold">${u.date.getDate()}</p>
-          </div>
-          <div class="flex gap-1 flex-1">
-            ${u.bins.map(b => `<div class="w-3 h-8 rounded" style="background:${b.color}"></div>`).join('')}
-          </div>
-          <p class="text-xs text-gray-500">${u.bins.map(b => b.label.split(' ')[0]).join(', ')}</p>
-        </div>
-      `).join('');
+          <div class="text-center w-12"><p class="text-xs text-gray-500">${u.date.toLocaleDateString('en-AU',{month:'short'})}</p><p class="font-bold">${u.date.getDate()}</p></div>
+          <div class="flex gap-1 flex-1">${u.bins.map(b=>`<div class="w-3 h-8 rounded" style="background:${b.color}" aria-hidden="true"></div>`).join('') || '<span class="text-xs text-gray-400">No bins</span>'}</div>
+          <p class="text-xs text-gray-500">${u.bins.map(b=>b.label.split(' ')[0]).join(', ')}</p>
+        </div>`).join('');
     }
 
-    // ===== Render: Calendar =====
     function renderCalendar() {
       if (!config) { showScreen('setupScreen'); return; }
       const now = new Date();
       const target = new Date(now.getFullYear(), now.getMonth() + calendarOffset, 1);
-      document.getElementById('calendarMonthLabel').textContent =
-        target.toLocaleDateString('en-AU', { month:'long', year:'numeric' });
-      const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0);
-      const startOffset = new Date(target.getFullYear(), target.getMonth(), 1).getDay();
+      document.getElementById('calendarMonthLabel').textContent = target.toLocaleDateString('en-AU',{month:'long',year:'numeric'});
+      const last = new Date(target.getFullYear(), target.getMonth()+1, 0);
+      const startOff = new Date(target.getFullYear(), target.getMonth(), 1).getDay();
       let html = '';
-      for (let i = 0; i < startOffset; i++) html += '<div></div>';
-      for (let d = 1; d <= lastDay.getDate(); d++) {
+      for (let i = 0; i < startOff; i++) html += '<div></div>';
+      for (let d = 1; d <= last.getDate(); d++) {
         const date = new Date(target.getFullYear(), target.getMonth(), d);
-        const isCollection = date.getDay() === config.day;
+        const isCol = date.getDay() === config.day;
         const isToday = date.toDateString() === new Date().toDateString();
-        const bins = isCollection ? binsForDate(date) : [];
-        html += `
-          <div class="aspect-square flex flex-col items-center justify-center rounded-lg ${isToday ? 'bg-blue-100' : ''} ${isCollection ? 'bg-blue-50' : ''}">
-            <span class="text-sm ${isToday ? 'font-bold text-blue-700' : ''}">${d}</span>
-            <div class="flex gap-0.5 mt-0.5">
-              ${bins.map(b => `<div class="w-1.5 h-1.5 rounded-full" style="background:${b.color}"></div>`).join('')}
-            </div>
-          </div>
-        `;
+        const bins = isCol ? binsForDate(date) : [];
+        html += `<div class="aspect-square flex flex-col items-center justify-center rounded-lg p-1 ${isToday?'bg-blue-100':''} ${isCol?'bg-blue-50':''}" ${bins.length?`aria-label="${date.getDate()} ${target.toLocaleDateString('en-AU',{month:'long'})}: ${bins.map(b=>b.label).join(', ')}"`:''}>
+          <span class="text-sm ${isToday?'font-bold text-blue-700':''}">${d}</span>
+          <div class="w-full mt-1 space-y-0.5">${bins.map(b=>`<div class="cal-bar" style="background:${b.color}"></div>`).join('')}</div>
+        </div>`;
       }
       document.getElementById('calendarGrid').innerHTML = html;
     }
 
-    // ===== Render: Settings =====
+    function renderGuide() {
+      const region = config?.region || 'NSW';
+      const c = REGION_BINS[region];
+      document.getElementById('guideContent').innerHTML = `
+        <details class="border-2 rounded-2xl p-4" style="background:${c.general}10; border-color:${c.general}40" open>
+          <summary class="font-bold text-lg cursor-pointer flex items-center gap-3"><div class="w-8 h-8 rounded-lg" style="background:${c.general}" aria-hidden="true"></div> General Waste</summary>
+          <div class="mt-3 text-sm text-gray-700 space-y-2"><p><strong class="text-green-700">YES:</strong> Food scraps, nappies, broken glass, dirty packaging, polystyrene, soft plastics (in some councils).</p><p><strong class="text-red-700">NO:</strong> Recyclables, garden waste, batteries, electronics, hazardous waste.</p></div>
+        </details>
+        <details class="border-2 rounded-2xl p-4" style="background:${c.recycling}1a; border-color:${c.recycling}80">
+          <summary class="font-bold text-lg cursor-pointer flex items-center gap-3"><div class="w-8 h-8 rounded-lg" style="background:${c.recycling}" aria-hidden="true"></div> Recycling</summary>
+          <div class="mt-3 text-sm text-gray-700 space-y-2"><p><strong class="text-green-700">YES:</strong> Clean paper, cardboard, glass bottles, aluminium cans, hard plastics (1, 2 & 5), milk cartons.</p><p><strong class="text-red-700">NO:</strong> Soft plastics, food waste, polystyrene, nappies, plastic bags, broken glass.</p><p class="text-xs italic">Tip: Rinse containers and don't bag your recycling.</p></div>
+        </details>
+        <details class="border-2 rounded-2xl p-4" style="background:${c.garden}10; border-color:${c.garden}40">
+          <summary class="font-bold text-lg cursor-pointer flex items-center gap-3"><div class="w-8 h-8 rounded-lg" style="background:${c.garden}" aria-hidden="true"></div> Garden / Organics</summary>
+          <div class="mt-3 text-sm text-gray-700 space-y-2"><p><strong class="text-green-700">YES:</strong> Lawn clippings, leaves, small branches, weeds, prunings.</p><p><strong class="text-green-700">FOGO councils also:</strong> Food scraps, fruit/veg peels, coffee grounds, eggshells.</p><p><strong class="text-red-700">NO:</strong> Plastic bags, soil, rocks, treated timber, large branches.</p></div>
+        </details>
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-sm text-blue-900">💡 <strong>When in doubt, leave it out</strong> — wrong items can contaminate the whole truckload.</div>`;
+    }
+
+    function isAnchorThisWeek() {
+      if (!config?.anchorDate) return true;
+      const a = new Date(config.anchorDate); a.setHours(0,0,0,0);
+      const t = new Date(); t.setHours(0,0,0,0);
+      return Math.round((t - a) / (7 * 86400000)) % 2 === 0;
+    }
     function renderSettings() {
       if (!config) return;
       document.getElementById('settingsPostcode').value = config.postcode || '';
-      const regionSel = document.getElementById('settingsRegion');
-      regionSel.innerHTML = Object.entries(REGION_LABELS)
-        .map(([k,v]) => `<option value="${k}" ${k===config.region?'selected':''}>${v}</option>`).join('');
-      const daySel = document.getElementById('settingsDay');
-      daySel.innerHTML = DAYS.map((d,i) => `<option value="${i}" ${i===config.day?'selected':''}>${d}</option>`).join('');
-      document.getElementById('settingsGeneral').checked = !!config.general;
-      document.getElementById('settingsRecycling').checked = !!config.recycling;
-      document.getElementById('settingsGarden').checked = !!config.garden;
+      document.getElementById('settingsRegion').innerHTML = Object.entries(REGION_LABELS).map(([k,v]) => `<option value="${k}" ${k===config.region?'selected':''}>${v}</option>`).join('');
+      document.getElementById('settingsDay').innerHTML = DAYS.map((d,i) => `<option value="${i}" ${i===config.day?'selected':''}>${d}</option>`).join('');
+      renderSettingsBins();
+      settingsRecyclingWeek = isAnchorThisWeek() ? 'this' : 'next';
+      updateSettingsRecyclingWeekUI(); updateSettingsRecyclingWeekVisibility();
       document.getElementById('settingsPostcodeResult').textContent = '';
     }
-    document.getElementById('settingsLookupBtn').addEventListener('click', () => doLookup('settingsPostcode','settingsPostcodeResult','settingsRegion'));
+    function renderSettingsBins() {
+      const region = document.getElementById('settingsRegion').value || config.region;
+      const c = REGION_BINS[region];
+      document.getElementById('settingsBinsList').innerHTML = `
+        <label class="flex items-center gap-3 p-3 rounded-xl border-2" style="background:${c.general}10; border-color:${c.general}40"><input type="checkbox" id="settingsGeneral" class="w-5 h-5" ${config.general?'checked':''} /><span class="flex-1">General Waste (weekly)</span><div class="w-6 h-6 rounded" style="background:${c.general}" aria-hidden="true"></div></label>
+        <label class="flex items-center gap-3 p-3 rounded-xl border-2" style="background:${c.recycling}1a; border-color:${c.recycling}80"><input type="checkbox" id="settingsRecycling" class="w-5 h-5" ${config.recycling?'checked':''} /><span class="flex-1">Recycling (fortnightly)</span><div class="w-6 h-6 rounded" style="background:${c.recycling}" aria-hidden="true"></div></label>
+        <label class="flex items-center gap-3 p-3 rounded-xl border-2" style="background:${c.garden}10; border-color:${c.garden}40"><input type="checkbox" id="settingsGarden" class="w-5 h-5" ${config.garden?'checked':''} /><span class="flex-1">Garden Waste (fortnightly)</span><div class="w-6 h-6 rounded" style="background:${c.garden}" aria-hidden="true"></div></label>`;
+      document.getElementById('settingsBinsList').querySelectorAll('input').forEach(cb => cb.addEventListener('change', updateSettingsRecyclingWeekVisibility));
+    }
+    function updateSettingsRecyclingWeekVisibility() {
+      const show = document.getElementById('settingsRecycling')?.checked || document.getElementById('settingsGarden')?.checked;
+      document.getElementById('settingsRecyclingWeekStep').classList.toggle('hidden', !show);
+    }
+    function updateSettingsRecyclingWeekUI() {
+      document.querySelectorAll('.settings-week-btn').forEach(b => {
+        const a = b.dataset.week === settingsRecyclingWeek;
+        b.classList.toggle('border-blue-600', a); b.classList.toggle('bg-blue-50', a);
+      });
+    }
+    document.querySelectorAll('.settings-week-btn').forEach(btn => btn.addEventListener('click', () => { settingsRecyclingWeek = btn.dataset.week; updateSettingsRecyclingWeekUI(); }));
+    document.getElementById('settingsRegion').addEventListener('change', renderSettingsBins);
 
-    // ===== Forms =====
     document.getElementById('setupSaveBtn').addEventListener('click', () => {
-      const region = document.getElementById('setupRegion').value;
-      const day = document.getElementById('setupDay').value;
-      const postcode = document.getElementById('setupPostcode').value.trim();
-      if (!region || day === '') { alert('Please choose a region and collection day.'); return; }
+      const r = document.getElementById('setupRegion').value;
+      const d = document.getElementById('setupDay').value;
+      if (!r || d === '') { validateSetup(); return; }
+      const dn = parseInt(d, 10);
+      const next = nextOccurrence(dn);
+      const anchor = setupRecyclingWeek === 'this' ? next : new Date(next.getTime() - 7*86400000);
       saveConfig({
-        postcode,
-        region,
-        day: parseInt(day, 10),
+        postcode: document.getElementById('setupPostcode').value.trim(), region: r, day: dn,
         general: document.getElementById('binGeneralWeekly').checked,
         recycling: document.getElementById('binRecycling').checked,
         garden: document.getElementById('binGarden').checked,
+        anchorDate: anchor.toISOString(),
       });
-      toast('Saved! 🎉');
-      showScreen('homeScreen');
+      toast('Saved! 🎉'); showScreen('homeScreen');
     });
     document.getElementById('settingsSaveBtn').addEventListener('click', () => {
+      const dn = parseInt(document.getElementById('settingsDay').value, 10);
+      const next = nextOccurrence(dn);
+      const anchor = settingsRecyclingWeek === 'this' ? next : new Date(next.getTime() - 7*86400000);
       saveConfig({
         postcode: document.getElementById('settingsPostcode').value.trim(),
-        region: document.getElementById('settingsRegion').value,
-        day: parseInt(document.getElementById('settingsDay').value, 10),
+        region: document.getElementById('settingsRegion').value, day: dn,
         general: document.getElementById('settingsGeneral').checked,
         recycling: document.getElementById('settingsRecycling').checked,
         garden: document.getElementById('settingsGarden').checked,
+        anchorDate: anchor.toISOString(),
       });
-      toast('Settings saved');
-      showScreen('homeScreen');
+      toast('Settings saved'); showScreen('homeScreen');
     });
     document.getElementById('resetBtn').addEventListener('click', () => {
       if (confirm('Reset all settings and start over?')) {
-        localStorage.removeItem(STORAGE_KEY);
-        config = null;
-        showScreen('setupScreen');
+        localStorage.removeItem(STORAGE_KEY); config = null; setupRecyclingWeek = null;
+        document.getElementById('setupSaveBtn').disabled = true; renderSetupBins(); showScreen('setupScreen');
       }
     });
-
-    // ===== Calendar nav =====
     document.getElementById('calPrev').addEventListener('click', () => { calendarOffset--; renderCalendar(); });
     document.getElementById('calNext').addEventListener('click', () => { calendarOffset++; renderCalendar(); });
-
-    // ===== Notifications =====
     document.getElementById('enableNotifBtn').addEventListener('click', async () => {
       if (!('Notification' in window)) { alert('Your browser does not support notifications.'); return; }
-      const result = await Notification.requestPermission();
-      if (result === 'granted') {
-        new Notification('🗑️ Bin Day reminders enabled', { body: "We'll remind you before bin night." });
-        toast('Notifications enabled');
-      } else {
-        alert('Notifications blocked. You can enable them in your browser settings.');
-      }
+      const r = await Notification.requestPermission();
+      if (r === 'granted') { new Notification('🗑️ This is a test', { body:'Bin Day notifications work in this browser.' }); toast('Test notification sent'); }
+      else { alert('Notifications blocked. You can enable them in your browser settings.'); }
     });
-
-    // ===== Install instructions (PWA) =====
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function icsDate(d) { return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`; }
+    function icsLocal(d) { return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
+    function buildIcs() {
+      if (!config) return '';
+      const events = []; const now = new Date();
+      let cursor = todayIsCollectionDay(config.day) ? new Date(now) : nextOccurrence(config.day, now);
+      cursor.setHours(0,0,0,0);
+      for (let i = 0; i < 52; i++) {
+        const bins = binsForDate(cursor);
+        if (bins.length) {
+          const eve = new Date(cursor); eve.setDate(eve.getDate() - 1);
+          const sum = bins.map(b => b.label).join(' + ');
+          events.push(['BEGIN:VEVENT',`UID:binday-${cursor.toISOString().slice(0,10)}@drizle90.github.io`,`DTSTAMP:${icsDate(new Date())}`,`DTSTART;VALUE=DATE:${icsLocal(eve)}`,`DTEND;VALUE=DATE:${icsLocal(cursor)}`,`SUMMARY:🗑️ Put out: ${sum}`,`DESCRIPTION:Bin night reminder for ${REGION_LABELS[config.region]}.`,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Bin night','TRIGGER:-PT2H','END:VALARM','END:VEVENT'].join('\r\n'));
+        }
+        cursor = new Date(cursor.getTime() + 7*86400000);
+      }
+      return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Bin Day Tracker//AU//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH', ...events, 'END:VCALENDAR'].join('\r\n');
+    }
+    document.getElementById('exportIcsBtn').addEventListener('click', () => {
+      const ics = buildIcs();
+      if (!ics) { toast('Pick at least one bin first'); return; }
+      const blob = new Blob([ics], { type:'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'binday.ics';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      toast('Calendar file downloaded');
+    });
     function detectPlatform() {
       const ua = navigator.userAgent.toLowerCase();
       if (/iphone|ipad|ipod/.test(ua)) return 'ios';
@@ -626,60 +552,28 @@
       return 'desktop';
     }
     function showInstallInstructions() {
-      const platform = detectPlatform();
-      const el = document.getElementById('installInstructions');
-      const instructions = {
-        ios: `
-          <p class="font-semibold">On iPhone / iPad (Safari):</p>
-          <ol class="list-decimal pl-5 space-y-1">
-            <li>Tap the <strong>Share</strong> button (square with up arrow) at the bottom.</li>
-            <li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li>
-            <li>Tap <strong>Add</strong> in the top-right corner.</li>
-          </ol>
-          <p class="text-xs text-gray-500">Bin Day will appear on your home screen as an app icon.</p>`,
-        android: `
-          <p class="font-semibold">On Android (Chrome):</p>
-          <ol class="list-decimal pl-5 space-y-1">
-            <li>Tap the <strong>⋮ menu</strong> in the top-right of Chrome.</li>
-            <li>Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong>.</li>
-            <li>Tap <strong>Add</strong> to confirm.</li>
-          </ol>
-          <p class="text-xs text-gray-500">Bin Day will appear in your app drawer like a native app.</p>`,
-        desktop: `
-          <p class="font-semibold">On Desktop (Chrome / Edge):</p>
-          <ol class="list-decimal pl-5 space-y-1">
-            <li>Look for the <strong>install icon</strong> (⊕) in the URL bar.</li>
-            <li>Click it, then click <strong>Install</strong>.</li>
-          </ol>
-          <p class="text-xs text-gray-500">Bin Day will open in its own window like a desktop app.</p>`
+      const p = detectPlatform();
+      const instr = {
+        ios: `<p class="font-semibold">On iPhone / iPad (Safari):</p><ol class="list-decimal pl-5 space-y-1"><li>Tap the <strong>Share</strong> button (square with up arrow).</li><li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li><li>Tap <strong>Add</strong>.</li></ol>`,
+        android: `<p class="font-semibold">On Android (Chrome):</p><ol class="list-decimal pl-5 space-y-1"><li>Tap the <strong>⋮ menu</strong> top-right.</li><li>Tap <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li><li>Tap <strong>Install</strong>.</li></ol>`,
+        desktop: `<p class="font-semibold">On Desktop (Chrome / Edge):</p><ol class="list-decimal pl-5 space-y-1"><li>Look for the <strong>install icon</strong> (⊕) in the URL bar.</li><li>Click it, then click <strong>Install</strong>.</li></ol>`
       };
-      el.innerHTML = instructions[platform];
+      document.getElementById('installInstructions').innerHTML = instr[p];
       document.getElementById('installModal').classList.remove('hidden');
       document.getElementById('installModal').classList.add('flex');
     }
     document.getElementById('installShowBtn').addEventListener('click', showInstallInstructions);
     document.getElementById('installInstructionsBtn').addEventListener('click', showInstallInstructions);
-    document.getElementById('closeInstallBtn').addEventListener('click', () => {
-      document.getElementById('installModal').classList.add('hidden');
-      document.getElementById('installModal').classList.remove('flex');
-    });
-    document.getElementById('installDismissBtn').addEventListener('click', () => {
-      document.getElementById('installBanner').classList.add('hidden');
-      localStorage.setItem(INSTALL_DISMISSED_KEY, '1');
-    });
-
-    // Show banner only on mobile and only if not dismissed and not already standalone
+    document.getElementById('closeInstallBtn').addEventListener('click', () => { document.getElementById('installModal').classList.add('hidden'); document.getElementById('installModal').classList.remove('flex'); });
+    document.getElementById('installDismissBtn').addEventListener('click', () => { document.getElementById('installBanner').classList.add('hidden'); localStorage.setItem(INSTALL_DISMISSED_KEY, '1'); });
     function maybeShowInstallBanner() {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       const dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
-      const platform = detectPlatform();
-      if (!isStandalone && !dismissed && (platform === 'ios' || platform === 'android')) {
-        document.getElementById('installBanner').classList.remove('hidden');
-      }
+      const p = detectPlatform();
+      if (!standalone && !dismissed && (p === 'ios' || p === 'android')) document.getElementById('installBanner').classList.remove('hidden');
     }
-
-    // ===== Bootstrap =====
     config = loadConfig();
+    renderSetupBins(); validateSetup();
     showScreen(config ? 'homeScreen' : 'setupScreen');
     maybeShowInstallBanner();
   </script>
