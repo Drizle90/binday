@@ -3,332 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Bin Day Tracker — Never miss bin night again. Smart reminders for Australian bin collection schedules." />
-  <meta property="og:title" content="Bin Day Tracker — Never miss bin night again" />
-  <meta property="og:description" content="Smart reminders, calendar view, and recycling guide for Australian households." />
-  <meta property="og:type" content="website" />
-  <title>Bin Day Tracker — Never Miss Bin Night Again</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%91%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+  <meta name="theme-color" content="#0066FF" />
+  <meta name="description" content="Bin Day - the simple Australian bin night tracker. Free, private, works offline." />
+  <title>Bin Day - Never miss bin night again</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ctext y=\'.9em\' font-size=\'90\'%3E%F0%9F%97%91%EF%B8%8F%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#0066FF',
-            secondary: '#FF6B35',
-            dark: '#1A1A2E',
-            light: '#F8F9FA',
-            recycle: '#FFD60A',
-            general: '#E63946',
-            garden: '#06A77D',
-          },
-          fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          },
-        },
-      },
-    };
-  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-    .gradient-text {
-      background: linear-gradient(135deg, #0066FF 0%, #FF6B35 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .gradient-bg {
-      background: linear-gradient(135deg, #0066FF 0%, #4A90E2 100%);
-    }
-    .bin-shadow { box-shadow: 0 20px 60px -15px rgba(0, 102, 255, 0.3); }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    .animate-float { animation: float 3s ease-in-out infinite; }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-up { animation: fadeInUp 0.6s ease-out forwards; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .gradient-bg { background: linear-gradient(135deg, #0066FF 0%, #06A77D 100%); }
+    .gradient-text { background: linear-gradient(135deg, #0066FF 0%, #06A77D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   </style>
 </head>
-<body class="bg-white text-dark">
-
-  <!-- Navigation -->
-  <nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
-      <a href="/" class="text-2xl font-bold gradient-text flex items-center gap-2">
-        <span>🗑️</span> Bin Day
-      </a>
-      <div class="hidden md:flex gap-8 items-center">
-        <a href="#features" class="text-dark hover:text-primary transition font-medium">Features</a>
-        <a href="#how" class="text-dark hover:text-primary transition font-medium">How It Works</a>
-        <a href="#pricing" class="text-dark hover:text-primary transition font-medium">Pricing</a>
-        <a href="#download" class="text-dark hover:text-primary transition font-medium">Download</a>
-        <a href="app.html" class="bg-primary text-white px-5 py-2 rounded-full hover:bg-blue-700 transition font-semibold">Try Web App</a>
-      </div>
+<body class="bg-white text-gray-900">
+  <header class="border-b border-gray-100 sticky top-0 bg-white/80 backdrop-blur-md z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2"><span class="text-2xl">&#128465;&#65039;</span><span class="font-extrabold text-lg">Bin Day</span></div>
+      <a href="app.html" class="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-sm hover:bg-blue-700">Open the app &rarr;</a>
     </div>
-  </nav>
-
-  <!-- Hero -->
-  <section class="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-orange-50 py-20 md:py-32">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid md:grid-cols-2 gap-12 items-center">
-        <div class="animate-fade-up">
-          <div class="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">
-            🇦🇺 Made for Australian households
-          </div>
-          <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-            Never miss <span class="gradient-text">bin night</span> again
-          </h1>
-          <p class="text-xl text-gray-600 mb-8 leading-relaxed">
-            Smart reminders for your bin collection schedule. Know exactly which bin to put out, when, with one glance.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4">
-            <a href="app.html" class="bg-primary text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-blue-700 transition shadow-lg hover:shadow-xl text-center">
-              🚀 Try Web App Free
-            </a>
-            <a href="#download" class="bg-white border-2 border-gray-200 text-dark px-8 py-4 rounded-full font-semibold text-lg hover:border-primary transition text-center">
-              📱 Get Mobile App
-            </a>
-          </div>
-          <div class="flex items-center gap-6 mt-8 text-sm text-gray-500">
-            <div class="flex items-center gap-2">
-              <span class="text-green-500 text-lg">✓</span> Free forever
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-green-500 text-lg">✓</span> No signup
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-green-500 text-lg">✓</span> Works offline
-            </div>
-          </div>
-        </div>
-        <div class="relative">
-          <div class="bin-shadow bg-white rounded-3xl p-8 max-w-sm mx-auto animate-float">
-            <div class="text-center mb-6">
-              <p class="text-sm text-gray-500 uppercase tracking-wide mb-2">Next Collection</p>
-              <p class="text-4xl font-extrabold text-dark">Tomorrow</p>
-              <p class="text-gray-600">Tuesday, 7:00 AM</p>
-            </div>
-            <div class="space-y-3">
-              <div class="flex items-center gap-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-2xl">
-                <div class="w-12 h-12 bg-recycle rounded-xl flex items-center justify-center text-2xl">♻️</div>
-                <div>
-                  <p class="font-bold">Yellow Bin</p>
-                  <p class="text-sm text-gray-600">Recycling</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-4 p-4 bg-green-50 border-2 border-green-300 rounded-2xl">
-                <div class="w-12 h-12 bg-garden rounded-xl flex items-center justify-center text-2xl">🌿</div>
-                <div>
-                  <p class="font-bold">Green Bin</p>
-                  <p class="text-sm text-gray-600">Garden Waste</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  </header>
+  <section class="max-w-6xl mx-auto px-6 py-20 text-center">
+    <p class="text-sm font-bold uppercase tracking-wider text-blue-600 mb-4">A free Australian bin tracker</p>
+    <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">Never miss<br/><span class="gradient-text">bin night</span> again.</h1>
+    <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-10">Tells you exactly which bin to put out, with the right colours for your state. 30-second setup, works offline, no account.</p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="app.html" class="gradient-bg text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl hover:scale-105 transition">Open the app - it's free</a>
+      <a href="#how" class="bg-gray-100 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-200">How it works</a>
     </div>
+    <p class="text-sm text-gray-400 mt-6">No signup &middot; No tracking &middot; Works in any modern browser</p>
   </section>
-
-  <!-- Stats -->
-  <section class="py-16 bg-dark text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-      <div>
-        <p class="text-4xl font-extrabold gradient-text">8</p>
-        <p class="text-gray-400 mt-2">Australian Regions</p>
-      </div>
-      <div>
-        <p class="text-4xl font-extrabold gradient-text">100%</p>
-        <p class="text-gray-400 mt-2">Free Forever</p>
-      </div>
-      <div>
-        <p class="text-4xl font-extrabold gradient-text">3</p>
-        <p class="text-gray-400 mt-2">Bin Types Tracked</p>
-      </div>
-      <div>
-        <p class="text-4xl font-extrabold gradient-text">0</p>
-        <p class="text-gray-400 mt-2">Missed Collections</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Features -->
-  <section id="features" class="py-20 md:py-28 bg-light">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-2xl mx-auto mb-16">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Everything you need</h2>
-        <p class="text-xl text-gray-600">Designed for busy Australian households who just want to know what bin goes out tonight.</p>
-      </div>
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition">
-          <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-3xl mb-5">⏰</div>
-          <h3 class="text-xl font-bold mb-3">Smart Reminders</h3>
-          <p class="text-gray-600 leading-relaxed">Get notified the evening before and morning of bin day so you never forget again.</p>
-        </div>
-        <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition">
-          <div class="w-14 h-14 bg-recycle/20 rounded-2xl flex items-center justify-center text-3xl mb-5">🎨</div>
-          <h3 class="text-xl font-bold mb-3">Region-Aware Colours</h3>
-          <p class="text-gray-600 leading-relaxed">Bin colours match your local council — NSW, VIC, QLD, WA, SA, TAS, ACT, and NT all supported.</p>
-        </div>
-        <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition">
-          <div class="w-14 h-14 bg-garden/20 rounded-2xl flex items-center justify-center text-3xl mb-5">📅</div>
-          <h3 class="text-xl font-bold mb-3">Calendar View</h3>
-          <p class="text-gray-600 leading-relaxed">See your entire month at a glance with colour-coded collection dates.</p>
-        </div>
-        <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition">
-          <div class="w-14 h-14 bg-secondary/20 rounded-2xl flex items-center justify-center text-3xl mb-5">📖</div>
-          <h3 class="text-xl font-bold mb-3">Recycling Guide</h3>
-          <p class="text-gray-600 leading-relaxed">Know exactly what goes in each bin to reduce contamination and waste.</p>
-        </div>
-        <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition">
-          <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl mb-5">🏆</div>
-          <h3 class="text-xl font-bold mb-3">Streaks & Badges</h3>
-          <p class="text-gray-600 leading-relaxed">Earn achievements as you build your bin night habit. Make recycling fun.</p>
-        </div>
-        <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition">
-          <div class="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-3xl mb-5">👨‍👩‍👧</div>
-          <h3 class="text-xl font-bold mb-3">Household Sharing</h3>
-          <p class="text-gray-600 leading-relaxed">Share schedules with everyone in your home so the whole family stays in sync.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- How It Works -->
-  <section id="how" class="py-20 md:py-28">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">How it works</h2>
-        <p class="text-xl text-gray-600">Three steps. About 30 seconds. Then never miss bin night again.</p>
-      </div>
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="text-center">
-          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
-          <h3 class="text-xl font-bold mb-2">Pick your region</h3>
-          <p class="text-gray-600">Choose your state — bin colours adjust automatically.</p>
-        </div>
-        <div class="text-center">
-          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
-          <h3 class="text-xl font-bold mb-2">Set your schedule</h3>
-          <p class="text-gray-600">Tell us when each bin goes out (or use council defaults).</p>
-        </div>
-        <div class="text-center">
-          <div class="w-16 h-16 mx-auto bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mb-4">3</div>
-          <h3 class="text-xl font-bold mb-2">Get reminded</h3>
-          <p class="text-gray-600">Smart notifications keep you on track — every single week.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Pricing -->
-  <section id="pricing" class="py-20 md:py-28 bg-light">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Simple, honest pricing</h2>
-        <p class="text-xl text-gray-600">Free forever. Pay only if you want extra power.</p>
+  <section class="bg-gray-50 py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-4xl font-extrabold mb-3">Built for the way Aussies actually use their bins</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">No fluff. No accounts. Just answers the one question you ask every week: which bin goes out tonight?</p>
       </div>
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl p-8 shadow-sm">
-          <h3 class="text-2xl font-bold mb-2">Free</h3>
-          <p class="text-gray-500 mb-4">Everything most households need</p>
-          <p class="text-5xl font-extrabold mb-6">$0<span class="text-lg text-gray-500 font-normal">/forever</span></p>
-          <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> All bin types tracked</li>
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Smart reminders</li>
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Calendar view</li>
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Recycling guide</li>
-          </ul>
-          <a href="app.html" class="block text-center bg-gray-100 hover:bg-gray-200 text-dark py-3 rounded-full font-semibold transition">Get Started</a>
-        </div>
-        <div class="bg-dark text-white rounded-2xl p-8 shadow-xl scale-105 relative">
-          <div class="absolute top-0 right-6 -translate-y-1/2 bg-secondary text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</div>
-          <h3 class="text-2xl font-bold mb-2">Premium</h3>
-          <p class="text-gray-400 mb-4">For households that want more</p>
-          <p class="text-5xl font-extrabold mb-6">$2.99<span class="text-lg text-gray-400 font-normal">/month</span></p>
-          <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2"><span class="text-green-400">✓</span> Everything in Free</li>
-            <li class="flex items-start gap-2"><span class="text-green-400">✓</span> Unlimited custom reminders</li>
-            <li class="flex items-start gap-2"><span class="text-green-400">✓</span> Recycling analytics</li>
-            <li class="flex items-start gap-2"><span class="text-green-400">✓</span> Priority support</li>
-          </ul>
-          <a href="app.html" class="block text-center bg-secondary hover:bg-orange-600 text-white py-3 rounded-full font-semibold transition">Start Free Trial</a>
-        </div>
-        <div class="bg-white rounded-2xl p-8 shadow-sm">
-          <h3 class="text-2xl font-bold mb-2">Family</h3>
-          <p class="text-gray-500 mb-4">Share with everyone at home</p>
-          <p class="text-5xl font-extrabold mb-6">$4.99<span class="text-lg text-gray-500 font-normal">/month</span></p>
-          <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Everything in Premium</li>
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Up to 6 family members</li>
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Shared household view</li>
-            <li class="flex items-start gap-2"><span class="text-green-500">✓</span> Rotating reminders</li>
-          </ul>
-          <a href="app.html" class="block text-center bg-gray-100 hover:bg-gray-200 text-dark py-3 rounded-full font-semibold transition">Get Started</a>
-        </div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100"><div class="text-3xl mb-3">&#127912;</div><h3 class="font-bold text-lg mb-2">Right colours for your state</h3><p class="text-gray-600 text-sm">Red lid in NSW, dark green in Vic, brown in Brisbane - the app shows the exact lid colours your council uses, for all 8 states &amp; territories.</p></div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100"><div class="text-3xl mb-3">&#128197;</div><h3 class="font-bold text-lg mb-2">Fortnight rotation, sorted</h3><p class="text-gray-600 text-sm">Recycling and garden waste alternate each week. Tell us which week is "this week" once, and we'll never get it wrong.</p></div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100"><div class="text-3xl mb-3">&#128205;</div><h3 class="font-bold text-lg mb-2">Postcode auto-detect</h3><p class="text-gray-600 text-sm">Type your postcode and we instantly know your state. No long council list to scroll through.</p></div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100"><div class="text-3xl mb-3">&#128242;</div><h3 class="font-bold text-lg mb-2">Add to home screen</h3><p class="text-gray-600 text-sm">Install it like a native app - tap the icon for instant access, no browser chrome.</p></div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100"><div class="text-3xl mb-3">&#128467;&#65039;</div><h3 class="font-bold text-lg mb-2">Export to your calendar</h3><p class="text-gray-600 text-sm">Download a year of bin nights as an .ics file - works with Apple, Google, and Outlook calendars, with built-in reminders.</p></div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-100"><div class="text-3xl mb-3">&#128274;</div><h3 class="font-bold text-lg mb-2">100% private</h3><p class="text-gray-600 text-sm">Everything stays on your device. No accounts, no analytics, no tracking, no servers storing your address.</p></div>
       </div>
     </div>
   </section>
-
-  <!-- Download / CTA -->
-  <section id="download" class="py-20 md:py-28 bg-gradient-to-br from-primary to-blue-700 text-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-4xl md:text-5xl font-extrabold mb-4">Ready to never miss bin night?</h2>
-      <p class="text-xl text-blue-100 mb-10">Try the web app instantly — no download, no signup.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="app.html" class="bg-white text-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition shadow-xl">
-          🚀 Open Web App
-        </a>
-        <a href="#" class="bg-white/10 backdrop-blur border-2 border-white/30 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition">
-          📱 Coming to App Store soon
-        </a>
+  <section id="how" class="py-20">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-4xl font-extrabold text-center mb-12">Set up in 30 seconds</h2>
+      <div class="space-y-8">
+        <div class="flex gap-6 items-start"><div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">1</div><div><h3 class="font-bold text-xl mb-1">Type your postcode</h3><p class="text-gray-600">We auto-detect your state. Or pick it manually if you prefer.</p></div></div>
+        <div class="flex gap-6 items-start"><div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">2</div><div><h3 class="font-bold text-xl mb-1">Pick your bin night &amp; bins</h3><p class="text-gray-600">Tell us what day collection happens and which bins your house has. If recycling is fortnightly, just say whether it's going out this week or next.</p></div></div>
+        <div class="flex gap-6 items-start"><div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl flex-shrink-0">3</div><div><h3 class="font-bold text-xl mb-1">Open it whenever you need</h3><p class="text-gray-600">Big colourful card on the home screen tells you what to put out. Calendar view shows the next few months.</p></div></div>
+      </div>
+      <div class="text-center mt-12"><a href="app.html" class="inline-block gradient-bg text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl">Try it now &rarr;</a></div>
+    </div>
+  </section>
+  <section class="bg-gray-50 py-20">
+    <div class="max-w-4xl mx-auto px-6">
+      <h2 class="text-3xl font-extrabold text-center mb-8">Honest answers</h2>
+      <div class="space-y-4">
+        <details class="bg-white p-5 rounded-xl border border-gray-100"><summary class="font-bold cursor-pointer">Is it really free?</summary><p class="text-gray-600 text-sm mt-2">Yes - completely free, with no ads, no signup, and no premium tier. Built as a personal project to fix a real annoyance.</p></details>
+        <details class="bg-white p-5 rounded-xl border border-gray-100"><summary class="font-bold cursor-pointer">Does it pull real council data?</summary><p class="text-gray-600 text-sm mt-2">No - Australia doesn't have a unified council bin API. You enter your collection day once and the app calculates the rest using standard fortnightly rotation. This is accurate for the vast majority of households.</p></details>
+        <details class="bg-white p-5 rounded-xl border border-gray-100"><summary class="font-bold cursor-pointer">Will it send me reminders?</summary><p class="text-gray-600 text-sm mt-2">Not directly yet - true scheduled push notifications need a server. The best workaround is the "Add to your calendar" button, which exports a year of bin nights as an .ics file with built-in reminders. Your phone's calendar will then nag you the night before.</p></details>
+        <details class="bg-white p-5 rounded-xl border border-gray-100"><summary class="font-bold cursor-pointer">Does it work on iPhone &amp; Android?</summary><p class="text-gray-600 text-sm mt-2">Yes - works in any modern browser. You can also "Add to Home Screen" so it behaves like a native app.</p></details>
+        <details class="bg-white p-5 rounded-xl border border-gray-100"><summary class="font-bold cursor-pointer">What about my data?</summary><p class="text-gray-600 text-sm mt-2">Everything stays on your device in browser storage. Nothing is sent anywhere. Clear your browser data and it's gone.</p></details>
       </div>
     </div>
   </section>
-
-  <!-- Footer -->
-  <footer class="bg-dark text-white py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid md:grid-cols-4 gap-8 mb-8">
-        <div>
-          <h3 class="text-2xl font-bold mb-4">🗑️ Bin Day</h3>
-          <p class="text-gray-400">Never miss bin day again. Made with ❤️ in Australia.</p>
-        </div>
-        <div>
-          <h4 class="font-semibold mb-4">Product</h4>
-          <ul class="space-y-2 text-gray-400">
-            <li><a href="#features" class="hover:text-white">Features</a></li>
-            <li><a href="#pricing" class="hover:text-white">Pricing</a></li>
-            <li><a href="app.html" class="hover:text-white">Web App</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="font-semibold mb-4">Company</h4>
-          <ul class="space-y-2 text-gray-400">
-            <li><a href="#" class="hover:text-white">About</a></li>
-            <li><a href="#" class="hover:text-white">Blog</a></li>
-            <li><a href="#" class="hover:text-white">Contact</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="font-semibold mb-4">Legal</h4>
-          <ul class="space-y-2 text-gray-400">
-            <li><a href="#" class="hover:text-white">Privacy</a></li>
-            <li><a href="#" class="hover:text-white">Terms</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="border-t border-gray-800 pt-6 text-center text-gray-500 text-sm">
-        © 2026 Bin Day Tracker. All rights reserved.
-      </div>
+  <section class="gradient-bg text-white py-20 text-center">
+    <div class="max-w-3xl mx-auto px-6">
+      <h2 class="text-4xl font-extrabold mb-4">Stop being the household that forgets bin night</h2>
+      <p class="text-xl mb-8 opacity-90">Open it once. 30 seconds of setup. Solved forever.</p>
+      <a href="app.html" class="bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg shadow-2xl hover:scale-105 transition inline-block">Open the app &rarr;</a>
+    </div>
+  </section>
+  <footer class="bg-gray-900 text-gray-400 py-10">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <div class="flex items-center justify-center gap-2 mb-3"><span class="text-2xl">&#128465;&#65039;</span><span class="font-extrabold text-white">Bin Day</span></div>
+      <p class="text-sm mb-2">Made in Australia. Open source on <a href="https://github.com/Drizle90/binday" class="underline hover:text-white">GitHub</a>.</p>
+      <p class="text-xs">v1.2 &middot; No tracking &middot; No accounts &middot; No nonsense</p>
     </div>
   </footer>
-
 </body>
 </html>
