@@ -19,8 +19,8 @@
     body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #F8F9FA; }
     .tab-active { color: #0066FF; }
     .tab-active::after { content: ''; display: block; width: 24px; height: 3px; background: #0066FF; border-radius: 999px; margin: 4px auto 0; }
-    .screen { display: none; }
-    .screen.active { display: block; }
+    .screen { display: none !important; }
+    .screen.active { display: flex !important; }
     @keyframes pulse-soft { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
@@ -85,12 +85,12 @@
           <div class="space-y-3" id="setupBinsList"></div>
         </div>
         <div id="recyclingWeekStep" class="hidden">
-          <label class="block text-sm font-semibold text-gray-700 mb-3">5. Did your recycling go out THIS week?</label>
+          <label id="recyclingWeekLabel" class="block text-sm font-semibold text-gray-700 mb-3">5. Did your recycling go out THIS week?</label>
           <div class="grid grid-cols-2 gap-3">
             <button type="button" data-week="this" class="recycling-week-btn p-4 bg-gray-100 rounded-xl font-bold text-sm border-2 border-transparent">✓ Yes, this week</button>
             <button type="button" data-week="next" class="recycling-week-btn p-4 bg-gray-100 rounded-xl font-bold text-sm border-2 border-transparent">No, next week</button>
           </div>
-          <p class="text-xs text-gray-500 mt-2">Recycling and Garden alternate weekly. Pick whichever week is "this week" for you.</p>
+          <p id="recyclingWeekHint" class="text-xs text-gray-500 mt-2">Recycling and Garden alternate weekly. Pick whichever week is "this week" for you.</p>
         </div>
       </div>
       <button id="setupSaveBtn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition mt-6" disabled>Save & Start Tracking</button>
@@ -238,9 +238,9 @@
     const REGION_LABELS = { NSW:'New South Wales', VIC:'Victoria', QLD:'Queensland', WA:'Western Australia', SA:'South Australia', TAS:'Tasmania', ACT:'ACT', NT:'Northern Territory' };
     const REGION_BINS = {
       NSW:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'}, VIC:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
-      QLD:{general:'#8B4513',recycling:'#0066FF',garden:'#06A77D'}, WA:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'},
-      SA:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'},  TAS:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
-      ACT:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'}, NT:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
+      QLD:{general:'#8B4513',recycling:'#FFD60A',garden:'#06A77D'}, WA:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'},
+      SA:{general:'#E63946',recycling:'#FFD60A',garden:'#06A77D'},  TAS:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#7B3F3F'},
+      ACT:{general:'#E63946',recycling:'#FFD60A',garden:'#A4C639'}, NT:{general:'#1A1A2E',recycling:'#FFD60A',garden:'#06A77D'},
     };
     function postcodeToState(pc) {
       const n = parseInt(pc, 10); if (isNaN(n) || pc.length !== 4) return null;
@@ -329,8 +329,17 @@
       updateRecyclingWeekVisibility();
     }
     function updateRecyclingWeekVisibility() {
-      const show = document.getElementById('binRecycling')?.checked || document.getElementById('binGarden')?.checked;
+      const hasRecycling = document.getElementById('binRecycling')?.checked;
+      const hasGarden = document.getElementById('binGarden')?.checked;
+      const show = hasRecycling || hasGarden;
       document.getElementById('recyclingWeekStep').classList.toggle('hidden', !show);
+      if (show) {
+        const bins = [hasRecycling && 'recycling', hasGarden && 'garden'].filter(Boolean);
+        const label = `5. Did your ${bins.join(' / ')} go out THIS week?`;
+        document.getElementById('recyclingWeekLabel').textContent = label;
+        const hint = bins.length > 1 ? 'Recycling and Garden alternate weekly. Pick whichever week is "this week" for you.' : `${bins[0].charAt(0).toUpperCase() + bins[0].slice(1)} goes out every fortnight. Pick the week it's "this week" for you.`;
+        document.getElementById('recyclingWeekHint').textContent = hint;
+      }
     }
     document.querySelectorAll('.recycling-week-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -505,7 +514,8 @@
     });
     document.getElementById('resetBtn').addEventListener('click', () => {
       if (confirm('Reset all settings and start over?')) {
-        localStorage.removeItem(STORAGE_KEY); config = null; setupRecyclingWeek = null;
+        Object.keys(localStorage).filter(k => k.startsWith('binday')).forEach(k => localStorage.removeItem(k));
+        config = null; setupRecyclingWeek = null;
         document.getElementById('setupSaveBtn').disabled = true; renderSetupBins(); showScreen('setupScreen');
       }
     });
@@ -576,6 +586,9 @@
     renderSetupBins(); validateSetup();
     showScreen(config ? 'homeScreen' : 'setupScreen');
     maybeShowInstallBanner();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
   </script>
 </body>
 </html>
